@@ -15,7 +15,7 @@ function start () {
   if (user_permission) {
     button.innerText = "p a u s e"
     play() 
-    tones = setInterval (play, 1000) // will change interval to beat value
+    tones = setInterval (play, 250) // will change interval to beat value
   }
 
   else {
@@ -25,20 +25,42 @@ function start () {
 }
 
 function play() {
-  const delay = Math.random() * 0.25 // change later probably
+
+  // will probably rewrite these as an array
+
+  const delay = Math.random() * 0.5 // change later probably
   const time = ctx.currentTime + delay
-  const pitch = step(220, Math.floor(Math.random() * 25))
+  const pitch = step(110, Math.floor(Math.random() * 25))
   
+  const delay2 = Math.random() * 0.5 // change later probably
+  const time2 = ctx.currentTime + delay2
+  const pitch2 = step(440, Math.floor(Math.random() * 25))
+
   // the 5 is duration
   // hardcoded for the moment to fit the whole adsr envelope
-  // i will turn it into a variable later
+  // i will probably turn it into a variable later
+  
+  // lower voice
+  if (Math.random() > 0.5) {
+    tone(pitch, time, 5)
+  }
+  // high voice
+  if (Math.random() > 0.85) {
+    tone(pitch2, time2, 5)
+  }
 
-  tone(pitch, time, 5)
+  // harmony (sometimes)
+  if (Math.random() > 0.95) {
+    tone(step(pitch2, Math.floor(2+Math.random()*4)), time2, 5)
+  }
+  
 }
 
-function tone (pitch, time, duration) {
-  const t = time
-  const dur = duration
+function tone (pitch, time, duration, attack, decay, sustain, release) {
+  const a = attack || 0.01
+  const d = decay || 0.1
+  const s = sustain || 0.1
+  const r = release || 3
   
   const osc = new OscillatorNode(ctx)
   const lvl = new GainNode(ctx, { gain: 0.001 })
@@ -49,11 +71,10 @@ function tone (pitch, time, duration) {
   lvl.connect(ctx.destination)
   lvl.connect(fft)
 
-  osc.start(t)
-  osc.stop(t + dur)
+  osc.start(time)
+  osc.stop(time + duration)
 
-  // hardcoded for testing purposes
-  adsr(lvl.gain, 0.5, 0.1, t, 0.01, 0.1, 0.1, 3)
+  adsr(lvl.gain, 0.5, 0.1, time, a, d, s, r)
 }
 
 // functions from the web audio api notes
@@ -79,7 +100,7 @@ function adsr (param, peak, val, time, a, d, s, r) {
 
 function step( root, steps ){
   // formula: http://pages.mtu.edu/~suits/NoteFreqCalcs.html
-  var tr2 = Math.pow(2, 1/24) 
+  var tr2 = Math.pow(2, 1/12) 
   rnd = root * Math.pow(tr2,steps)
   return Math.round(rnd*100)/100
 }
