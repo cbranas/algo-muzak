@@ -3,10 +3,6 @@ const ctx = new (window.AudioContext || window.webkitAudioContext)()
 const fft = new AnalyserNode(ctx, { fftSize: 2048 })
 createWaveCanvas({ element: 'section', analyser: fft, fill: '#000000', stroke: 'cyan'})
 
-// not currently in use, will be made random later
-const tempo = 140
-const beat = 60 / tempo
-
 // onClick
 function start () {
   user_permission = !user_permission
@@ -14,8 +10,8 @@ function start () {
 
   if (user_permission) {
     button.innerText = "p a u s e"
-    play() 
-    tones = setInterval (play, 250) // will change interval to beat value
+    play()
+    tones = setInterval (play, 250)
   }
 
   else {
@@ -25,38 +21,32 @@ function start () {
 }
 
 function play() {
+  // generates notes for three voices
+  const duration = 5
+  const probabilities = [0.5, 0.85, 0.9]
 
-  // will probably rewrite these as an array
+  const times = [
+    ctx.currentTime + Math.random() * 0.5, 
+    ctx.currentTime + Math.random() * 0.5,
+  ]
+  times.push(times[1]) // 3rd voice in sync with 2nd
 
-  const delay = Math.random() * 0.5 // change later probably
-  const time = ctx.currentTime + delay
-  const pitch = step(110, Math.floor(Math.random() * 25))
+  const pitches = [
+    step(110, Math.floor(Math.random() * 25)),
+    step(440, Math.floor(Math.random() * 25))
+  ]
+  // 3rd voice at intervals with 2nd
+  pitches.push(step(pitches[1], Math.floor(2 + Math.random() * 4)))
   
-  const delay2 = Math.random() * 0.5 // change later probably
-  const time2 = ctx.currentTime + delay2
-  const pitch2 = step(440, Math.floor(Math.random() * 25))
-
-  // the 5 is duration
-  // hardcoded for the moment to fit the whole adsr envelope
-  // i will probably turn it into a variable later
-  
-  // lower voice
-  if (Math.random() > 0.5) {
-    tone(pitch, time, 5)
+  for (let i = 0; i < 3; i++) {
+    if (Math.random() > probabilities[i]) {
+      tone(pitches[i], times[i], duration)
+    }
   }
-  // high voice
-  if (Math.random() > 0.85) {
-    tone(pitch2, time2, 5)
-  }
-
-  // harmony (sometimes)
-  if (Math.random() > 0.95) {
-    tone(step(pitch2, Math.floor(2+Math.random()*4)), time2, 5)
-  }
-  
 }
 
 function tone (pitch, time, duration, attack, decay, sustain, release) {
+  // not currently in use--might randomize envelope vals in the future, though
   const a = attack || 0.01
   const d = decay || 0.1
   const s = sustain || 0.1
@@ -77,8 +67,8 @@ function tone (pitch, time, duration, attack, decay, sustain, release) {
   adsr(lvl.gain, 0.5, 0.1, time, a, d, s, r)
 }
 
-// functions from the web audio api notes
-// thank you Nick!
+// functions from Nick's web audio api notes
+// (thank you!)
 function adsr (param, peak, val, time, a, d, s, r) {
   /*
                 peak

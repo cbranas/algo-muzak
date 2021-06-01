@@ -21,7 +21,8 @@ section {
 
 button { 
     background:none;
-    border:none; 
+    border:none;
+    outline: none;
     transition-duration: 0.4s;
     color: #AAAAAA;
     font-family: 'Roboto Mono', monospace;
